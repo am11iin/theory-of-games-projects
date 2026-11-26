@@ -1,0 +1,5 @@
+Problème,Algorithme,Best,Worst,Mean,Std,Succès (%),Temps moyen (s),Wilcoxon p-value
+Rastrigin (Continu),GWO classique,0.0000e+00,1.4792e-01,4.9305e-03,2.7006e-02,96.7%,0.2718,-
+Rastrigin (Continu),GT-GWO (Hybride),0.0000e+00,0.0000e+00,0.0000e+00,0.0000e+00,100.0%,0.3621,3.1731e-01
+Sac à Dos 0/1 (Discret),BGWO classique,573.0,570.0,572.80,0.6103,86.7%,1.8599,-
+Sac à Dos 0/1 (Discret),BGT-GWO (Hybride),573.0,572.0,572.90,0.3051,90.0%,1.1087,3.1731e-01
