@@ -23,7 +23,8 @@ def gwo(
     dimensions=2,
     lower_bound=-5.12,
     upper_bound=5.12,
-    max_iterations=100
+    max_iterations=100,
+    verbose=True
 ):
 
     # Initialize wolf population
@@ -102,10 +103,11 @@ def gwo(
         # Save convergence information
         convergence_curve.append(global_best_score)
 
-        print(
-            f"Iteration {t + 1}/{max_iterations} | "
-            f"Best fitness: {global_best_score:.8f}"
-        )
+        if verbose:
+           print(
+        f"Iteration {t + 1}/{max_iterations} | "
+        f"Best fitness: {global_best_score:.8f}"
+            )
 
     # Evaluate final population as well
     final_fitness = np.array([
@@ -119,6 +121,10 @@ def gwo(
         global_best_position = wolves[best_index].copy()
 
     return global_best_position, global_best_score, convergence_curve
+
+
+# Alias for compatibility with capitalized import (from Gwo import Gwo)
+Gwo = gwo
 
 
 # ==========================================
@@ -136,14 +142,13 @@ if __name__ == "__main__":
 
     print("Theoretical minimum: 0")
 
-
     import matplotlib.pyplot as plt
 
-plt.plot(curve)
+    plt.plot(curve)
 
-plt.title("GWO Convergence - Rastrigin")
-plt.xlabel("Iteration")
-plt.ylabel("Best Fitness")
+    plt.title("GWO Convergence - Rastrigin")
+    plt.xlabel("Iteration")
+    plt.ylabel("Best Fitness")
 
-plt.grid(True)
-plt.show()
+    plt.grid(True)
+    plt.show()
