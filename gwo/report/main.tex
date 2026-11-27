@@ -2,7 +2,7 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[french]{babel}
+\usepackage[english]{babel}
 \usepackage{geometry}
 \geometry{top=2.5cm, bottom=2.5cm, left=2.5cm, right=2.5cm}
 
@@ -23,20 +23,20 @@
 
 \title{
     \vspace{-1.5cm}
-    \textbf{Université des Sciences et de la Technologie} \\
-    \large Master Informatique --- Métaheuristiques et Théorie des Jeux \\[1.5cm]
-    \LARGE \textbf{Projet : Théorie des Jeux dans une Métaheuristique} \\[0.5cm]
-    \Large \textbf{Hybridation de Grey Wolf Optimizer par la Théorie des Jeux Évolutive (GT-GWO) et Étude Comparative avec SDPSO} \\[1.5cm]
+    \textbf{University of Science and Technology} \\
+    \large Master of Science in Computer Science --- Metaheuristics and Game Theory \\[1.5cm]
+    \LARGE \textbf{Project Report: Game Theory in a Metaheuristic} \\[0.5cm]
+    \Large \textbf{Hybridizing Grey Wolf Optimizer via Evolutionary Game Theory (GT-GWO) and Comparative Analysis with SDPSO} \\[1.5cm]
 }
 
 \author{
-    \textbf{Réalisé par :} \\[0.2cm]
-    Abderrahmane FERHAT \& Binôme \\[0.8cm]
-    \textbf{Encadré par :} \\[0.2cm]
+    \textbf{Conducted by:} \\[0.2cm]
+    Abderrahmane FERHAT \& Teammate \\[0.8cm]
+    \textbf{Supervised by:} \\[0.2cm]
     Dr. Djamila DAHMANI
 }
 
-\date{\vfill Année Universitaire 2026--2027}
+\date{\vfill Academic Year 2026--2027}
 
 \begin{document}
 
@@ -47,20 +47,20 @@
 \tableofcontents
 \newpage
 
-\section*{Introduction Générale}
-\addcontentsline{toc}{section}{Introduction Générale}
-Les métaheuristiques à base de population, telles que les algorithmes génétiques, l'optimisation par essaim particulaire (PSO) et le Grey Wolf Optimizer (GWO), ont prouvé leur remarquable efficacité pour résoudre des problèmes d'optimisation complexes et non linéaires. Toutefois, leur comportement repose traditionnellement sur des règles de déplacement déterministes ou des schémas d'exploration/exploitation figés. 
+\section*{General Introduction}
+\addcontentsline{toc}{section}{General Introduction}
+Population-based metaheuristics, including Genetic Algorithms (GA), Particle Swarm Optimization (PSO), and the Grey Wolf Optimizer (GWO), have demonstrated exceptional capabilities in solving non-linear, high-dimensional optimization problems. Nevertheless, their governing equations conventionally depend on static parameter transitions or fixed exploration--exploitation schedules. 
 
-Ce projet étudie l'apport formel de la \textbf{Théorie des Jeux Évolutive (EGT)} au sein de ces algorithmes. En modélisant les individus d'une population comme des joueurs capables d'adopter des stratégies distinctes et d'évoluer selon leurs gains empiriques via l'équation du réplicateur de Taylor et Jonker (1978), nous concevons une variante adaptative avancée : \textbf{GT-GWO}. Ce travail propose une évaluation expérimentale rigoureuse sur deux familles de problèmes (optimisation continue multimodale et optimisation combinatoire discrète avec le sac à dos 0/1) ainsi qu'une comparaison croisée avec l'approche SDPSO.
-
-\newpage
-
-% Inclusion de la Partie A
-\input{partie_A.tex}
+This project investigates the formal integration of \textbf{Evolutionary Game Theory (EGT)} into swarm intelligence algorithms. By treating the individuals of a population as strategic agents competing and cooperating via the discrete Replicator Dynamics of Taylor and Jonker (1978), we develop an advanced adaptive algorithm: \textbf{GT-GWO (Game Theoretic Grey Wolf Optimizer)}. This report presents a rigorous experimental evaluation across two problem families (continuous multimodal landscapes and combinatorial discrete optimization with the 0/1 Knapsack Problem) alongside a head-to-head comparative analysis against the SDPSO framework.
 
 \newpage
 
-% Bibliographie
+% Part A: State of the Art
+\input{part_A.tex}
+
+\newpage
+
+% Bibliography
 \bibliographystyle{IEEEtran}
 \bibliography{references}
 

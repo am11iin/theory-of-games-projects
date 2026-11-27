@@ -1,0 +1,130 @@
+\section{Part A: State of the Art}
+
+Metaheuristic optimization and game theory represent two foundational branches of applied mathematics and computer science. Their hybridization provides a principled framework for addressing complex, non-linear optimization problems. This section reviews the chosen metaheuristic, the selected game-theoretic model, and provides a critical evaluation of major existing literature that bridges swarm intelligence and game dynamics.
+
+\subsection{Selected Metaheuristic: Grey Wolf Optimizer (GWO)}
+
+\subsubsection{Biological Inspiration and Social Hierarchy}
+Introduced by Mirjalili et al. in 2014 \cite{mirjalili2014grey}, the \textit{Grey Wolf Optimizer} (GWO) is a population-based swarm intelligence algorithm inspired by the social dominance hierarchy and collective hunting mechanisms of grey wolves (\textit{Canis lupus}). The population is strictly organized into four social tiers:
+\begin{enumerate}
+    \item \textbf{Alpha ($\alpha$):} The dominant individual, representing the best candidate solution identified so far. The Alpha directs the pack's movement, hunting trajectory, and exploration focus.
+    \item \textbf{Beta ($\beta$):} The second-in-command, representing the second-best candidate solution. The Beta reinforces Alpha's decisions, disciplines the pack, and acts as the immediate successor.
+    \item \textbf{Delta ($\delta$):} The third-best candidate solution, corresponding to scouts, sentinels, and elders. The Delta wolves maintain boundary vigilance and help surround the prey.
+    \item \textbf{Omega ($\omega$):} The remaining subordinate wolves in the pack. Omega wolves submit to the leading hierarchy ($\alpha, \beta, \delta$) and update their coordinates by tracking and encircling the space delineated by the top three leaders.
+\end{enumerate}
+
+\subsubsection{Mathematical Formulation}
+The predatory mechanism is formalized through three successive mathematical behaviors: tracking, encircling, and attacking the prey.
+
+\paragraph{1. Encircling the Prey:}
+The spatial distance between a wolf and the target prey (represented by the dominant solutions) is modeled by:
+\begin{equation}
+    \vec{D} = |\vec{C} \cdot \vec{X}_p(t) - \vec{X}(t)|
+\end{equation}
+where $t$ denotes the current iteration, $\vec{X}_p$ is the position vector of the prey, and $\vec{X}$ is the position vector of the wolf. The updated position vector is defined as:
+\begin{equation}
+    \vec{X}(t+1) = \vec{X}_p(t) - \vec{A} \cdot \vec{D}
+\end{equation}
+The coefficient vectors $\vec{A}$ and $\vec{C}$ are dynamically computed as:
+\begin{equation}
+    \vec{A} = 2\vec{a} \cdot \vec{r}_1 - \vec{a}, \quad \vec{C} = 2\vec{r}_2
+\end{equation}
+where $\vec{r}_1, \vec{r}_2 \sim \mathcal{U}[0, 1]^d$ are uniformly distributed random vectors, and the vector $\vec{a}$ decreases linearly from $2$ to $0$ across the maximum iteration budget $T_{\max}$:
+\begin{equation}
+    a(t) = 2 - 2 \cdot \left(\frac{t}{T_{\max}}\right)
+\end{equation}
+
+\paragraph{2. Hunting and Collective Guidance:}
+In black-box optimization, the location of the global optimum is unknown a priori. GWO hypothesizes that the top three candidates ($\alpha, \beta, \delta$) possess superior spatial knowledge regarding the promising regions of the landscape. Each subordinate wolf calculates three candidate displacement vectors:
+\begin{align}
+    \vec{D}_\alpha &= |\vec{C}_1 \cdot \vec{X}_\alpha - \vec{X}|, & \vec{X}_1 &= \vec{X}_\alpha - \vec{A}_1 \cdot \vec{D}_\alpha \\
+    \vec{D}_\beta  &= |\vec{C}_2 \cdot \vec{X}_\beta - \vec{X}|,  & \vec{X}_2 &= \vec{X}_\beta - \vec{A}_2 \cdot \vec{D}_\beta \\
+    \vec{D}_\delta &= |\vec{C}_3 \cdot \vec{X}_\delta - \vec{X}|, & \vec{X}_3 &= \vec{X}_\delta - \vec{A}_3 \cdot \vec{D}_\delta
+\end{align}
+The final updated position of the wolf at iteration $t+1$ is the arithmetic centroid of these three vectors:
+\begin{equation}
+    \vec{X}(t+1) = \frac{\vec{X}_1 + \vec{X}_2 + \vec{X}_3}{3}
+\end{equation}
+
+\subsubsection{Intrinsic Structural Limitations of Standard GWO}
+Despite its algorithmic simplicity and absence of heavy parameter tuning compared to Particle Swarm Optimization (PSO) \cite{kennedy1995particle}, canonical GWO suffers from critical weaknesses:
+\begin{itemize}
+    \item \textbf{Rigid Exploration--Exploitation Transition:} The balance between global exploration ($|\vec{A}| > 1$) and local exploitation ($|\vec{A}| < 1$) is dictated strictly by the deterministic linear decay of $a$. This schedule is non-adaptive and completely blind to the actual state or landscape difficulty encountered by the pack.
+    \item \textbf{Premature Convergence and Local Optima Traps:} As $a \to 0$ in the late phase of the search, the pack inevitably loses genetic diversity. If the triad $(\alpha, \beta, \delta)$ is deceived by a local basin of attraction (such as in complex multimodal landscapes like Rastrigin), the entire pack collapses onto this suboptimal point without any stochastic mechanism to escape.
+\end{itemize}
+
+---
+
+\subsection{Selected Game-Theoretic Framework: Evolutionary Game Theory (EGT)}
+
+To overcome the static limitations of canonical metaheuristics, game theory provides a rigorous mathematical framework modeling decision-making among interacting agents.
+
+\subsubsection{From Classical Game Theory to Evolutionary Dynamics}
+Classical game theory (pioneered by von Neumann, Morgenstern, and Nash) assumes hyper-rational players possessing complete information who deduce static Nash equilibria. In contrast, optimization algorithms are iterative, dynamic, and operating under incomplete information. 
+
+\textbf{Evolutionary Game Theory (EGT)} \cite{weibull1995evolutionary} replaces the assumption of hyper-rationality with \textit{bounded rationality} and \textit{natural selection}. In EGT, a population of agents repeatedly engages in strategic interactions. Strategies that yield higher empirical payoffs spread through the population, while suboptimal strategies diminish over time.
+
+\subsubsection{Replicator Dynamics of Taylor \& Jonker (1978)}
+The foundational mathematical model of EGT adopted in this work is the **Replicator Dynamics** formulated by Taylor and Jonker \cite{taylor1978evolutionary}. In its discrete algorithmic formulation, the probability distribution vector $\mathbf{p}(t) = [p_1(t), \dots, p_K(t)]$ over $K$ search strategies evolves according to:
+\begin{equation}
+    p_k(t+1) = p_k(t) + \alpha \cdot p_k(t) \cdot \Big(F_k(t) - \bar{F}(t)\Big)
+    \label{eq:replicator}
+\end{equation}
+subject to the simplex constraints $p_k(t) \ge 0$ and $\sum_{k=1}^K p_k(t) = 1$, where:
+\begin{itemize}
+    \item $p_k(t)$ denotes the proportion of the population adopting strategy $k$ at generation $t$.
+    \item $\alpha \in (0, 1]$ is the population learning rate parameter.
+    \item $F_k(t)$ is the average empirical payoff (fitness improvement) generated by agents executing strategy $k$ during generation $t$.
+    \item $\bar{F}(t) = \sum_{j=1}^K p_j(t) \cdot F_j(t)$ represents the average payoff of the entire population.
+\end{itemize}
+
+\paragraph{Core Mathematical Principle:}
+The selection dynamic is governed by the sign of $(F_k(t) - \bar{F}(t))$:
+\begin{itemize}
+    \item If a strategy outperforms the swarm average ($F_k(t) > \bar{F}(t)$), its growth rate is strictly positive, expanding its proportion $p_k$.
+    \item If a strategy underperforms ($F_k(t) < \bar{F}(t)$), its growth rate is negative, reducing its future selection probability.
+\end{itemize}
+
+---
+
+\subsection{Critical Review of Existing Hybrid Literature}
+
+The hybridization of evolutionary/swarm computation with game-theoretic mechanisms is an emerging research field. Three prominent contributions in the literature substantiate this approach:
+
+\subsubsection{1. Strategy Dynamics Particle Swarm Optimizer (Liu \& Nishi, 2022)}
+In their seminal paper published in \textit{Information Sciences} \cite{liu2022strategy}, Liu and Nishi proposed the **SDPSO** framework, integrating discrete replicator dynamics into Particle Swarm Optimization.
+\begin{itemize}
+    \item \textbf{Core Methodology:} Recognising that single-strategy PSO tends to suffer from premature velocity saturation, the authors established a multi-operator pool (LIPS, UPSO, LDWPSO, CLPSO). The selection probabilities of these four distinct operators are adaptively updated based on relative personal best ($pbest$) improvements.
+    \item \textbf{Key Stabilizing Mechanisms:} To prevent the premature extinction of exploratory behaviors, an anti-extinction mutation threshold ($p_k \ge 0.02$) is maintained. Furthermore, periodic strategy restarts (at 25\%, 50\%, and 75\% of the evaluation budget) reset the distribution to prevent over-specialization.
+    \item \textbf{Relevance to this Work:} This publication validates the robustness of replicator dynamics in continuous swarm optimization and serves as our direct comparative baseline implemented in the accompanying team codebase.
+\end{itemize}
+
+\subsubsection{2. Natural Selection and Adaptive Dynamics in GWO (Al-Betar et al., 2018)}
+Al-Betar et al. \cite{albetar2018natural} investigated the incorporation of natural selection mechanisms (roulette wheel, tournament, and fitness-proportionate selection) into the hierarchical replacement of GWO.
+\begin{itemize}
+    \item \textbf{Analysis:} The authors demonstrated that the standard deterministic replacement of the Alpha, Beta, and Delta wolves creates an information bottleneck, drastically depleting population diversity.
+    \item \textbf{Findings:} Introducing selection pressure governed by relative fitness improvements prevents the pack from premature clustering around suboptimal local extrema and promotes sustained exploration.
+\end{itemize}
+
+\subsubsection{3. Multi-Agent Swarm Optimization via Game Theory (Venter \& Sobieski, 2003)}
+Venter and Sobieszczanski-Sobieski \cite{venter2003particle} formulated one of the earliest integrations of game theory into particle swarm optimization for multidisciplinary design optimization (MDO).
+\begin{itemize}
+    \item \textbf{Analysis:} The parameter space was partitioned among subsets of particles considered as non-cooperative players seeking a Nash equilibrium.
+    \item \textbf{Comparative Insight:} While effective for cleanly decoupled sub-problems, computing exact Nash equilibria in non-cooperative games incurs substantial computational overhead. In contrast, Evolutionary Game Theory (EGT) using replicator dynamics operates at a fraction of the computational cost, rendering it substantially more suitable for unified population control.
+\end{itemize}
+
+---
+
+\subsection{Research Gap and Positioning of GT-GWO}
+Capitalizing on these theoretical foundations, this project introduces the **Game Theoretic Grey Wolf Optimizer (GT-GWO)**:
+\begin{enumerate}
+    \item Rather than executing a single, rigid displacement formula, wolves dynamically sample from a portfolio of **four complementary hunting strategies**:
+    \begin{itemize}
+        \item \textit{TRIO\_COOP}: Canonical balanced hunting guided by $(\alpha, \beta, \delta)$.
+        \item \textit{ALPHA\_EXPLOIT}: Concentrated assault around the fittest leader $\alpha$.
+        \item \textit{LEVY\_EXPLORE}: Heavy-tailed stochastic Lévy flight for escaping local entrapment.
+        \item \textit{SOCIAL\_PEER}: Horizontal peer-to-peer differential communication.
+    \end{itemize}
+    \item The strategy distribution is continuously refined via **Taylor--Jonker replicator dynamics** based on empirical fitness gains, equipped with an anti-extinction threshold ($\epsilon = 0.05$).
+    \item The approach is rigorously verified across both **continuous multimodal optimization** (Rastrigin, Sphere) and **combinatorial discrete optimization** (0/1 Knapsack Problem via sigmoidal binarization and greedy heuristic repair).
+\end{enumerate}
