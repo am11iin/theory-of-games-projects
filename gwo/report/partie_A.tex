@@ -1,0 +1,120 @@
+\section{Partie A : État de l'Art}
+
+L'optimisation métaheuristique et la théorie des jeux constituent deux domaines mathématiques complémentaires dont le croisement offre des perspectives prometteuses pour la résolution de problèmes d'optimisation complexes. Cette section présente la métaheuristique retenue, le modèle théorique de jeu adopté, ainsi qu'une revue critique de la littérature scientifique combinant ces deux paradigmes.
+
+\subsection{La métaheuristique retenue : Grey Wolf Optimizer (GWO)}
+
+\subsubsection{Inspiration biologique et hiérarchie sociale}
+Proposé par Mirjalili et al. en 2014 \cite{mirjalili2014grey}, le \textit{Grey Wolf Optimizer} (GWO) est une métaheuristique d'optimisation par essaim inspirée de la structure sociale stricte et des stratégies collectives de chasse des loups gris (\textit{Canis lupus}). La population est organisée selon une hiérarchie pyramidale comprenant quatre niveaux :
+\begin{enumerate}
+    \item \textbf{Le loup Alpha ($\alpha$)} : Leader de la meute, représentant la meilleure solution trouvée jusqu'à présent ($1^{\text{er}}$ rang). Il est principalement responsable des décisions d'orientation de la chasse.
+    \item \textbf{Le loup Beta ($\beta$)} : Conseiller direct de l'Alpha et second dans la chaîne de commandement ($2^{\text{e}}$ rang). Il prend le relais en cas de défaillance de l'Alpha et assiste ce dernier.
+    \item \textbf{Le loup Delta ($\delta$)} : Troisième meilleure solution ($3^{\text{e}}$ rang). Il correspond aux sentinelles, éclaireurs et gardiens qui sécurisent la meute et complètent l'encerclement.
+    \item \textbf{Les loups Omega ($\omega$)} : L'ensemble des autres individus de la meute. Ils se soumettent aux trois dominants ($\alpha, \beta, \delta$) et mettent à jour leur position en convergeant vers l'espace défini par ce trio.
+\end{enumerate}
+
+\subsubsection{Formulation mathématique standard}
+Le comportement de chasse se décompose en trois phases fondamentales : la poursuite, l'encerclement et l'attaque de la proie.
+
+\paragraph{1. Encerclement de la proie :}
+La distance entre un loup $i$ et la proie (représentée par les leaders) est modélisée par le vecteur $\vec{D}$ :
+\begin{equation}
+    \vec{D} = |\vec{C} \cdot \vec{X}_p(t) - \vec{X}(t)|
+\end{equation}
+où $t$ désigne l'itération courante, $\vec{X}_p$ est le vecteur position de la proie, et $\vec{X}$ est la position du loup. La mise à jour de la position est régie par :
+\begin{equation}
+    \vec{X}(t+1) = \vec{X}_p(t) - \vec{A} \cdot \vec{D}
+\end{equation}
+Les vecteurs de coefficients $\vec{A}$ et $\vec{C}$ sont calculés selon :
+\begin{equation}
+    \vec{A} = 2\vec{a} \cdot \vec{r}_1 - \vec{a}, \quad \vec{C} = 2\vec{r}_2
+\end{equation}
+où $\vec{r}_1, \vec{r}_2 \in [0, 1]^d$ sont des vecteurs aléatoires uniformes, et le paramètre $\vec{a}$ décroît de manière strictement linéaire de $2$ à $0$ au cours des itérations :
+\begin{equation}
+    a = 2 - 2 \cdot \left(\frac{t}{T_{\max}}\right)
+\end{equation}
+
+\paragraph{2. Chasse et guidage collectif :}
+Dans un espace de recherche inconnu, la position de l'optimum global (la proie) n'est pas connue a priori. GWO postule que les trois meilleurs candidats $(\alpha, \beta, \delta)$ possèdent une meilleure estimation de sa localisation. Chaque loup $\omega$ calcule trois positions candidates :
+\begin{align}
+    \vec{D}_\alpha &= |\vec{C}_1 \cdot \vec{X}_\alpha - \vec{X}|, & \vec{X}_1 &= \vec{X}_\alpha - \vec{A}_1 \cdot \vec{D}_\alpha \\
+    \vec{D}_\beta  &= |\vec{C}_2 \cdot \vec{X}_\beta - \vec{X}|,  & \vec{X}_2 &= \vec{X}_\beta - \vec{A}_2 \cdot \vec{D}_\beta \\
+    \vec{D}_\delta &= |\vec{C}_3 \cdot \vec{X}_\delta - \vec{X}|, & \vec{X}_3 &= \vec{X}_\delta - \vec{A}_3 \cdot \vec{D}_\delta
+\end{align}
+La position finale du loup à l'itération $t+1$ est la moyenne arithmétique de ces trois composantes :
+\begin{equation}
+    \vec{X}(t+1) = \frac{\vec{X}_1 + \vec{X}_2 + \vec{X}_3}{3}
+\end{equation}
+
+\subsubsection{Limites critiques du GWO classique}
+Bien que performant et exempt de paramètres complexes comme l'inertie de PSO \cite{kennedy1995particle}, GWO souffre d'un défaut structurel majeur :
+\begin{itemize}
+    \item \textbf{Transition exploration/exploitation figée :} Le contrôle de la dynamique repose exclusivement sur la décroissance linéaire déterministe de $a$. Lorsque $|A| > 1$, l'algorithme privilégie l'exploration ; lorsque $|A| < 1$, il force l'exploitation. 
+    \item \textbf{Perte de diversité et stagnation prématurée :} Vers la seconde moitié de l'optimisation ($a \to 0$), la meute perd sa capacité d'échappement. Si le trio $(\alpha, \beta, \delta)$ converge dans le bassin d'attraction d'un optimum local (comme observé sur les fonctions multimodales type Rastrigin), la population entière s'y agglutine sans possibilité de diversification.
+\end{itemize}
+
+---
+
+\subsection{Le modèle de jeu retenu : Théorie des Jeux Évolutive (EGT)}
+
+Pour surmonter cette rigidité, la théorie des jeux offre un cadre rigoureux permettant aux agents de choisir dynamiquement leur comportement.
+
+\subsubsection{Du paradigme classique au paradigme évolutif}
+Contrairement à la théorie des jeux classique (Von Neumann, Morgenstern, Nash), qui suppose des joueurs infiniment rationnels analysant toutes les combinaisons stratégiques dans un jeu statique, la \textbf{Théorie des Jeux Évolutive} (\textit{Evolutionary Game Theory - EGT}) \cite{weibull1995evolutionary} s'intéresse à des populations d'agents en interaction répétée au sein d'un environnement dynamique. 
+
+Les agents n'ont pas besoin de rationalité parfaite : ils adoptent des stratégies, en évaluent les résultats empiriques (\textit{payoffs}), et les comportements les plus performants se diffusent progressivement au sein de la population selon les principes de la sélection naturelle.
+
+\subsubsection{Dynamique du Réplicateur de Taylor \& Jonker (1978)}
+Le modèle mathématique central retenu dans ce projet est l'équation du réplicateur introduite par Taylor et Jonker \cite{taylor1978evolutionary}. Dans sa version discrète, adaptée aux itérations algorithmiques, la part de la population adoptant une stratégie $k$ évolue selon la loi :
+\begin{equation}
+    p_k(t+1) = p_k(t) + \alpha \cdot p_k(t) \cdot \Big(F_k(t) - \bar{F}(t)\Big)
+    \label{eq:replicator}
+\end{equation}
+où :
+\begin{itemize}
+    \item $p_k(t)$ est la proportion d'individus (ou la probabilité d'adoption) jouant la stratégie $k$, avec $\sum_k p_k(t) = 1$.
+    \item $\alpha \in ]0, 1]$ représente le taux d'apprentissage de la population.
+    \item $F_k(t)$ est le gain moyen (\textit{average payoff}) obtenu par les individus ayant joué la stratégie $k$ à l'itération $t$.
+    \item $\bar{F}(t) = \sum_{j} p_j(t) \cdot F_j(t)$ est le gain moyen de l'ensemble de la meute.
+\end{itemize}
+
+\paragraph{Propriété fondamentale :}
+Si une stratégie rapporte un gain supérieur à la moyenne collective ($F_k > \bar{F}$), le terme $(F_k - \bar{F})$ est positif, ce qui entraîne une \textbf{croissance} de $p_k$. Inversement, les stratégies sous-performantes voient leur représentativité régresser.
+
+---
+
+\subsection{Revue critique des approches hybrides existantes}
+
+L'hybridation des métaheuristiques avec la théorie des jeux est un domaine de recherche actif. Trois contributions majeures illustrent cette dynamique :
+
+\subsubsection{1. SDPSO : Strategy Dynamics PSO (Liu \& Nishi, 2022)}
+Dans leur article de référence paru dans \textit{Information Sciences} \cite{liu2022strategy}, Liu et Nishi intègrent l'équation du réplicateur de Taylor et Jonker au sein de l'optimisation par essaim particulaire (PSO).
+\begin{itemize}
+    \item \textbf{Principe :} Les auteurs constatent que PSO stagne souvent en raison d'une formule de mise à jour unique. Ils introduisent 4 sous-stratégies (LIPS, UPSO, LDWPSO, CLPSO) dont les probabilités sont réajustées par l'équation du réplicateur selon l'amélioration relative du meilleur personnel ($pbest$).
+    \item \textbf{Mécanisme clé :} Un seuil de mutation minimal ($p_k \ge 0.02$) empêche l'extinction définitive des stratégies exploratoires, et des redémarrages périodiques réinitialisent la distribution pour éviter la sur-spécialisation.
+    \item \textbf{Apport pour notre projet :} Ce travail démontre la validité pratique du réplicateur pour piloter des métaheuristiques d'essaim et sert directement de référence comparative à notre projet (implémenté en binôme).
+\end{itemize}
+
+\subsubsection{2. Sélection naturelle et dynamiques évolutives dans GWO (Al-Betar et al., 2018)}
+Al-Betar et al. \cite{albetar2018natural} étudient l'incorporation d'opérateurs de sélection naturelle (roulette, tournoi, sélection proportionnelle au fitness) pour modifier le remplacement hiérarchique de GWO.
+\begin{itemize}
+    \item \textbf{Constat :} Le remplacement systématique et déterministe des leaders par les trois meilleurs individus crée un goulot d'étranglement qui détruit la diversité génétique de la meute.
+    \item \textbf{Solution :} L'introduction d'un choix stochastique basé sur le gain relatif permet d'assurer une meilleure exploration de l'espace d'état et retarde la convergence prématurée.
+\end{itemize}
+
+\subsubsection{3. PSO et théorie des jeux coopératifs / non-coopératifs (Venter \& Sobieski, 2003)}
+Venter et Sobieszczanski-Sobieski \cite{venter2003particle} ont été parmi les pionniers à formaliser l'optimisation multidisciplinaire sous forme de jeu entre sous-groupes de particules.
+\begin{itemize}
+    \item \textbf{Principe :} Les dimensions de l'espace de recherche sont partagées entre des sous-essaims considérés comme des joueurs poursuivant des sous-objectifs, convergeant vers un équilibre de Nash.
+    \item \textbf{Limites identifiées :} Bien qu'efficace pour les problèmes partitionnables, la recherche d'un équilibre de Nash strict est coûteuse en calcul. L'approche par théorie des jeux évolutive (EGT) basée sur le réplicateur s'avère nettement plus légère et mieux adaptée à la synchronisation d'agents dans un espace non partitionné.
+\end{itemize}
+
+---
+
+\subsection{Positionnement de notre travail}
+Face aux limites de la décroissance rigide de GWO et aux enseignements de la littérature, notre contribution (\textbf{GT-GWO}) transpose les principes de la dynamique du réplicateur à l'optimisation par loups gris :
+\begin{enumerate}
+    \item Les loups ne subissent plus une stratégie unique, mais arbitrent dynamiquement entre 4 stratégies de chasse (coopération du trio, attaque ciblée Alpha, saut stochastique de Lévy et interaction entre pairs).
+    \item L'évaluation empirique des gains garantit une réactivité continue de l'algorithme face aux blocages dans les minima locaux.
+    \item L'approche est étendue avec succès au domaine combinatoire discret (Sac à dos 0/1) via une binarisation par sigmoïde et réparation gloutonne.
+\end{enumerate}
