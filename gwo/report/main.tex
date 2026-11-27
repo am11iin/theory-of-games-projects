@@ -24,13 +24,13 @@
 \title{
     \vspace{-1.5cm}
     \textbf{University of Science and Technology} \\
-    \large Master of Science in Computer Science --- Metaheuristics and Game Theory \\[1.5cm]
-    \LARGE \textbf{Project Report: Game Theory in a Metaheuristic} \\[0.5cm]
-    \Large \textbf{Hybridizing Grey Wolf Optimizer via Evolutionary Game Theory (GT-GWO) and Comparative Analysis with SDPSO} \\[1.5cm]
+    \large Master in Computer Science --- Metaheuristics and Game Theory \\[1.2cm]
+    \LARGE \textbf{A Comparative Study of Evolutionary Game Theory in Swarm Intelligence} \\[0.4cm]
+    \Large \textbf{Integrating Replicator Dynamics into Particle Swarm Optimization (SDPSO) and Grey Wolf Optimizer (GT-GWO)} \\[1.2cm]
 }
 
 \author{
-    \textbf{Conducted by:} \\[0.2cm]
+    \textbf{Prepared by:} \\[0.2cm]
     Abderrahmane FERHAT \& Teammate \\[0.8cm]
     \textbf{Supervised by:} \\[0.2cm]
     Dr. Djamila DAHMANI
@@ -49,9 +49,20 @@
 
 \section*{General Introduction}
 \addcontentsline{toc}{section}{General Introduction}
-Population-based metaheuristics, including Genetic Algorithms (GA), Particle Swarm Optimization (PSO), and the Grey Wolf Optimizer (GWO), have demonstrated exceptional capabilities in solving non-linear, high-dimensional optimization problems. Nevertheless, their governing equations conventionally depend on static parameter transitions or fixed exploration--exploitation schedules. 
 
-This project investigates the formal integration of \textbf{Evolutionary Game Theory (EGT)} into swarm intelligence algorithms. By treating the individuals of a population as strategic agents competing and cooperating via the discrete Replicator Dynamics of Taylor and Jonker (1978), we develop an advanced adaptive algorithm: \textbf{GT-GWO (Game Theoretic Grey Wolf Optimizer)}. This report presents a rigorous experimental evaluation across two problem families (continuous multimodal landscapes and combinatorial discrete optimization with the 0/1 Knapsack Problem) alongside a head-to-head comparative analysis against the SDPSO framework.
+Swarm intelligence algorithms, such as Particle Swarm Optimization (PSO) and the Grey Wolf Optimizer (GWO), have become central tools for solving complex, non-linear optimization problems. By drawing inspiration from natural collective behaviors---such as birds flocking or wolves hunting in packs---these methods effectively search large solution spaces without requiring gradient information.
+
+However, almost all standard swarm metaheuristics face a common challenge: their search dynamics are governed by rigid, predetermined mathematical formulas. In standard PSO, every particle is pulled toward a single global best position ($gbest$) using fixed acceleration parameters. In standard GWO, all wolves update their positions through a single averaging formula, while exploration shifts to exploitation through a strictly linear, blind reduction of parameter $a$. When tackling multimodal landscapes with multiple deceptive peaks and valleys, these fixed schedules frequently lead to premature convergence, where the entire population gets trapped in a local optimum.
+
+To overcome this limitation, \textbf{Game Theory} offers a principled framework. Rather than forcing every individual to follow the exact same rule throughout the entire run, we can view the swarm as an evolving population of players. Individuals can choose between multiple search strategies (some focusing on broad exploration, others on targeted local exploitation), evaluate the actual payoff of their moves, and adapt their behavior over time.
+
+In this project, we implement and evaluate the integration of \textbf{Evolutionary Game Theory (EGT)}---specifically the discrete Replicator Dynamics of Taylor and Jonker (1978)---into two major swarm paradigms:
+\begin{enumerate}
+    \item \textbf{Particle Swarm Optimization (SDPSO):} Investigating how multi-operator velocity updates (LIPS, UPSO, LDWPSO, CLPSO) prevent velocity saturation around the single leader $gbest$, based on the foundational work of Liu and Nishi (2022).
+    \item \textbf{Grey Wolf Optimizer (GT-GWO):} Introducing a portfolio of four adaptive hunting strategies (`TRIO\_COOP`, `ALPHA\_EXPLOIT`, `LEVY\_EXPLORE`, and `SOCIAL\_PEER`) to eliminate local stagnation in continuous landscapes and extending the method to discrete combinatorial optimization (the 0/1 Knapsack Problem).
+\end{enumerate}
+
+By conducting 30 independent runs per configuration on both continuous (Sphere, Rastrigin) and discrete benchmarks, performing Wilcoxon signed-rank tests, and analyzing the underlying strategy distributions, this report presents a thorough and honest evaluation of what game-theoretic hybridization brings to swarm optimization.
 
 \newpage
 
