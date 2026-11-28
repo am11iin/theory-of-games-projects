@@ -1,0 +1,28 @@
+\chapter{Conclusion Générale et Perspectives}
+\label{chap:conclusion}
+
+\section{Synthèse des Contributions}
+Ce projet d'études a exploré les synergies fondamentales entre deux domaines majeurs de l'informatique décisionnelle : les métaheuristiques d'intelligence en essaim et la théorie des jeux évolutive (EGT). 
+
+Face aux défaillances récurrentes des algorithmes canoniques (stagnation dans les minima locaux, perte irréversible de diversité et réglage temporel aveugle du compromis exploration/exploitation), nous avons modélisé, implémenté et évalué deux architectures d'hybridation fondées sur l'\textbf{équation du réplicateur de Taylor \& Jonker (1978)} :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item L'algorithme \textbf{SDPSO} (\textit{Strategy Dynamics Particle Swarm Optimization}), qui met en compétition quatre opérateurs de vitesse (LIPS, UPSO, LDWPSO, CLPSO) avec redémarrages périodiques et seuil de mutation minimal ;
+    \item L'algorithme \textbf{GT-GWO} (\textit{Game-Theoretic Grey Wolf Optimizer}), qui dote la meute de loups gris d'un arbitrage dynamique entre quatre stratégies de chasse exclusives : guidage coopératif classique (\texttt{TRIO\_COOP}), exploitation intensive du leader (\texttt{ALPHA\_EXPLOIT}), perturbation stochastique par vols de Lévy (\texttt{LEVY\_EXPLORE}) et coopération horizontale (\texttt{SOCIAL\_PEER}) ;
+    \item L'extension combinatoire discrète \textbf{BGT-GWO}, appliquée au problème NP-complet du \textbf{Sac à Dos 0/1}, associant projection par sigmoïde, opérateur de réparation glouton par ratio d'efficacité, et confrontation avec un solveur exact par programmation dynamique.
+\end{enumerate}
+
+\section{Bilan Scientifique des Résultats}
+Les expérimentations intensives menées sur 120 répétitions indépendantes et plusieurs suites de fonctions benchmarks apportent des conclusions tangibles :
+\begin{itemize}[label=\textbullet]
+    \item \textbf{Éradication de la stagnation multimodale :} Sur la fonction accidentée de Rastrigin, GT-GWO supprime complètement les échecs de convergence du GWO classique, atteignant un taux de succès parfait de \textbf{100.0\%} avec une variance nulle. L'analyse temporelle des probabilités confirme que les vols de Lévy débloquent la meute en phase précoce, avant que l'exploitation Alpha ne prenne le relais pour finaliser l'approximation.
+    \item \textbf{Efficacité accrue et accélération en espace combinatoire discret :} Sur le problème du Sac à Dos 0/1, BGT-GWO améliore le taux de découverte de l'optimum exact (90.0\% vs 86.7\%) et divise la variance des solutions par deux. De surcroît, la cohérence spatiale induite par l'EGT réduit la charge de réparation des contraintes, rendant l'algorithme hybride \textbf{40.4\% plus rapide} en temps CPU que le BGWO classique.
+    \item \textbf{Légèreté algorithmique :} Avec un surcoût mémoire en $\mathcal{O}(K) = \mathcal{O}(1)$ et un surcoût temporel négligeable par rapport aux évaluations de la fonction objectif, la théorie des jeux évolutive s'impose comme un mécanisme d'adaptation élégant, robuste et extrêmement peu coûteux.
+\end{itemize}
+
+\section{Perspectives de Recherche et Développements Futurs}
+Ces travaux ouvrent plusieurs perspectives stimulantes :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Apprentissage par Renforcement Multi-Agent (MARL) :} Remplacer l'équation du réplicateur par des agents d'apprentissage par renforcement profond (DQN, PPO ou Actor-Critic), capables d'apprendre des politiques de sélection contextuelles en fonction de descripteurs géométriques locaux du paysage de fitness.
+    \item \textbf{Théorie des Jeux Coopératifs et Valeur de Shapley :} Dans les problèmes d'optimisation à très grande échelle (\textit{Large Scale Global Optimization} à plusieurs centaines de variables), utiliser la valeur de Shapley pour quantifier la contribution marginale de chaque variable ou sous-groupe de dimensions, permettant un partitionnement dynamique du problème.
+    \item \textbf{Extension à d'autres Métaheuristiques et Applications Industrielles :} Transposer ce cadre d'arbitrage évolutif à d'autres métaheuristiques récentes (Whale Optimization, Harris Hawks, Chimp Optimizer) et l'appliquer à des problématiques industrielles complexes, telles que la planification logistique sous contraintes de temps ou le dimensionnement de réseaux électriques intelligents (\textit{Smart Grids}).
+\end{enumerate}

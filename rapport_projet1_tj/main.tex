@@ -1,0 +1,179 @@
+\documentclass[12pt,a4paper]{report}
+
+% -----------------------------------------------------------------------------
+% PACKAGES FONDAMENTAUX & ENCODAGE
+% -----------------------------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% -----------------------------------------------------------------------------
+% GÉOMÉTRIE & MISE EN PAGE (Cible : ~18-20 pages)
+% -----------------------------------------------------------------------------
+\usepackage[a4paper,top=2.5cm,bottom=2.5cm,left=2.5cm,right=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{parskip}
+\usepackage{fancyhdr}
+
+% -----------------------------------------------------------------------------
+% MATHÉMATIQUES & SYMBOLES
+% -----------------------------------------------------------------------------
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+
+% -----------------------------------------------------------------------------
+% TABLEAUX, FIGURES & COULEURS
+% -----------------------------------------------------------------------------
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{subcaption}
+\usepackage{caption}
+
+% Définition de couleurs professionnelles
+\definecolor{usthbblue}{RGB}{20, 60, 130}
+\definecolor{darkblue}{RGB}{10, 40, 100}
+\definecolor{linkblue}{RGB}{25, 80, 160}
+
+% -----------------------------------------------------------------------------
+% HYPERLIENS & BIBLIOGRAPHIE
+% -----------------------------------------------------------------------------
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[colorlinks=true,linkcolor=linkblue,citecolor=linkblue,urlcolor=linkblue]{hyperref}
+
+\hypersetup{
+    pdftitle={Théorie des Jeux : Rapport de Projet},
+    pdfauthor={SELLAMI Mohamed Amine, KEDJOUR Chakib Abderrahmane, FERHAT Abderrahmane},
+    pdfsubject={Hybridation Métaheuristique par Théorie des Jeux Évolutive (SDPSO et GT-GWO)},
+    pdfkeywords={Théorie des jeux évolutive, Réplicateur de Taylor-Jonker, PSO, GWO, SDPSO, GT-GWO, Sac à dos 0/1}
+}
+
+% Style des entêtes et pieds de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\nouppercase{\leftmark}}
+\fancyhead[R]{\small USTHB -- Faculté d'Informatique}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.3pt}
+
+% Début du document
+\begin{document}
+
+% -----------------------------------------------------------------------------
+% PAGE DE GARDE CONFORME AU MODÈLE OFFICIEL USTHB
+% -----------------------------------------------------------------------------
+\begin{titlepage}
+    \centering
+    \vspace*{-0.8cm}
+    
+    {\fontsize{13pt}{16pt}\selectfont\textbf{UNIVERSITÉ DES SCIENCES ET DE LA TECHNOLOGIE}}\\[0.15cm]
+    {\fontsize{13pt}{16pt}\selectfont\textbf{HOUARI BOUMEDIENE (USTHB)}}\\[0.25cm]
+    {\fontsize{12pt}{15pt}\selectfont\textbf{FACULTÉ D'INFORMATIQUE}}\\[1.2cm]
+
+    {\fontsize{20pt}{24pt}\selectfont\textbf{THÉORIE DES JEUX : RAPPORT DE PROJET}}\\[0.4cm]
+    {\fontsize{13pt}{16pt}\selectfont Projet d'études en Informatique}\\[0.3cm]
+    {\fontsize{11pt}{14pt}\selectfont\textit{Étude Comparative de l'Hybridation Métaheuristique par Dynamique du Réplicateur :\\
+    Applications aux Algorithmes SDPSO et GT-GWO sur Espaces Continus et Discrets}}\\[0.8cm]
+
+    % Logo USTHB
+    \begin{figure}[h!]
+        \centering
+        \includegraphics[width=6.5cm]{figures/usthb_logo.png}
+    \end{figure}
+
+    \vspace{0.8cm}
+
+    % Noms des étudiants et superviseur
+    \begin{minipage}[t]{0.54\textwidth}
+        \flushleft
+        \textbf{\large Présenté par :}\\[0.25cm]
+        \begin{itemize}[leftmargin=*,label=\textbullet]
+            \item \textbf{SELLAMI Mohamed Amine}\\
+            \small Matricule : 202231567215
+            \item \textbf{KEDJOUR Chakib Abderrahmane}\\
+            \small Matricule : 212131075651
+            \item \textbf{FERHAT Abderrahmane}\\
+            \small Matricule : 212136002131
+        \end{itemize}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.42\textwidth}
+        \flushright
+        \textbf{\large Supervisé par :}\\[0.25cm]
+        \textbf{Dr. D. DAHMANI}
+    \end{minipage}
+
+    \vfill
+
+    {\large Année universitaire 2026 -- 2027\par}
+    {\large Année 2026\par}
+\end{titlepage}
+
+% -----------------------------------------------------------------------------
+% RÉSUMÉ & ABSTRACT
+% -----------------------------------------------------------------------------
+\pagenumbering{roman}
+\setcounter{page}{1}
+
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
+
+Ce projet d'études explore l'intégration de la \textbf{Théorie des Jeux Évolutive (EGT)} au sein des métaheuristiques d'optimisation par essaim. Les algorithmes canoniques d'intelligence en essaim, tels que l'optimisation par essaim particulaire (\textit{Particle Swarm Optimization} - PSO) et l'optimisation par loups gris (\textit{Grey Wolf Optimizer} - GWO), s'appuient historiquement sur des règles de déplacement rigides et des programmations prédéfinies de la transition exploration-exploitation. Ces mécanismes déterministes entraînent fréquemment une perte sévère de diversité et une stagnation prématurée dans des minima locaux sous paysages de recherche fortement accidentés. 
+
+Pour pallier ces faiblesses, nous étudions et implémentons deux architectures d'hybridation fondées sur l'\textbf{équation du réplicateur de Taylor \& Jonker (1978)} : l'algorithme \textbf{SDPSO} (\textit{Strategy Dynamics Particle Swarm Optimizer}) et l'algorithme \textbf{GT-GWO} (\textit{Game-Theoretic Grey Wolf Optimizer}). Dans ces paradigmes, les agents sélectionnent dynamiquement leurs opérateurs parmi un portfolio de stratégies complémentaires selon leurs performances relatives empiriques (\textit{payoffs}). 
+
+Nos expérimentations intensives (120 répétitions indépendantes, benchmarks continus multimodaux de dimension 2 à 30 incluant Rastrigin, Sphere, Schwefel, Rosenbrock, Ackley et Griewank, ainsi qu'une formulation combinatoire discrète sur le problème du Sac à Dos 0/1 résolu exactement par programmation dynamique) démontrent l'efficacité de la régulation de population par théorie des jeux. Sur la fonction de Rastrigin, GT-GWO élimine totalement la stagnation observée chez le GWO classique (100\% de succès contre 96.7\%, variance nulle). Sur le problème du Sac à Dos 0/1, l'algorithme BGT-GWO surpasse le BGWO classique en régularité tout en divisant le temps de calcul par 1.67. Enfin, les dynamiques temporelles de stratégies révèlent une commutation adaptative autonome entre exploration globale et exploitation ciblée, confirmant l'apport structurel de la théorie des jeux aux métaheuristiques d'essaim.
+
+\vspace{0.8cm}
+\textbf{Mots-clés :} Théorie des Jeux Évolutive, Équation du Réplicateur, Métaheuristiques d'Essaim, Particle Swarm Optimization (PSO), Grey Wolf Optimizer (GWO), SDPSO, GT-GWO, Sac à Dos 0/1, Tests de Wilcoxon.
+
+\newpage
+
+% -----------------------------------------------------------------------------
+% TABLES DES MATIÈRES, FIGURES ET TABLEAUX
+% -----------------------------------------------------------------------------
+\tableofcontents
+\newpage
+
+\listoffigures
+\listoftables
+\newpage
+
+% -----------------------------------------------------------------------------
+% CORPS DU RAPPORT (PAGINATION ARABE)
+% -----------------------------------------------------------------------------
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+\input{sections/00_introduction.tex}
+\newpage
+
+\input{sections/01_etat_de_l_art.tex}
+\newpage
+
+\input{sections/02_conception_modelisation.tex}
+\newpage
+
+\input{sections/03_resultats_experimentaux.tex}
+\newpage
+
+\input{sections/04_discussion_critique.tex}
+\newpage
+
+\input{sections/05_conclusion.tex}
+\newpage
+
+% -----------------------------------------------------------------------------
+% BIBLIOGRAPHIE
+% -----------------------------------------------------------------------------
+\bibliographystyle{IEEEtran}
+\addcontentsline{toc}{chapter}{Bibliographie}
+\bibliography{references}
+
+\end{document}

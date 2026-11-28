@@ -1,0 +1,111 @@
+\chapter{État de l'Art et Fondements Théoriques}
+\label{chap:etat_art}
+
+Ce chapitre établit les bases mathématiques et conceptuelles indispensables à la compréhension de nos travaux. Nous y présentons successivement les métaheuristiques canoniques PSO et GWO, l'analyse critique de leurs défaillances structurelles, les fondements de la Théorie des Jeux Évolutive et de l'équation du réplicateur, ainsi qu'une synthèse des contributions majeures de la littérature.
+
+\section{Les Métaheuristiques d'Essaim Canoniques}
+
+\subsection{L'Optimisation par Essaim Particulaire (PSO)}
+Développé en 1995 par Kennedy et Eberhart \cite{kennedy1995particle}, le PSO s'inspire de la chorégraphie collective des nuées d'oiseaux et des bancs de poissons. L'espace de recherche à $d$ dimensions est exploré par une population (le \textit{swarm}) de $N$ particules. Chaque particule $i$ possède à l'itération $t$ un vecteur de position $\mathbf{x}_i(t) \in \mathbb{R}^d$ et un vecteur de vitesse $\mathbf{v}_i(t) \in \mathbb{R}^d$.
+
+La mise à jour de la vitesse combine inertie, composante cognitive et composante sociale selon :
+\begin{align}
+    \mathbf{v}_i(t+1) &= w \, \mathbf{v}_i(t) + c_1 \, \mathbf{r}_{1,i} \odot \left(\mathbf{pbest}_i - \mathbf{x}_i(t)\right) + c_2 \, \mathbf{r}_{2,i} \odot \left(\mathbf{gbest} - \mathbf{x}_i(t)\right) \label{eq:pso_vel}\\
+    \mathbf{x}_i(t+1) &= \mathbf{x}_i(t) + \mathbf{v}_i(t+1) \label{eq:pso_pos}
+\end{align}
+où :
+\begin{itemize}[label=\textbullet]
+    \item $w$ est le coefficient d'inertie régulant l'influence de la vitesse antérieure ;
+    \item $c_1$ et $c_2$ sont respectivement les coefficients d'accélération cognitif (attraction vers le meilleur souvenir individuel $\mathbf{pbest}_i$) et social (attraction vers le meilleur global de l'essaim $\mathbf{gbest}$) ;
+    \item $\mathbf{r}_{1,i}, \mathbf{r}_{2,i} \sim \mathcal{U}(0, 1)^d$ sont des vecteurs aléatoires uniformes, et $\odot$ représente le produit de Hadamard (élément par élément).
+\end{itemize}
+
+\subsection{L'Optimisation par Loups Gris (GWO)}
+Proposé en 2014 par Mirjalili et al. \cite{mirjalili2014grey}, le GWO émule la hiérarchie sociale stricte et la stratégie de chasse collaborative des loups gris (\textit{Canis lupus}). La meute de $N$ loups est organisée en quatre échelons hiérarchiques :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Le loup Alpha ($\alpha$) :} la solution optimale courante de la meute ($1^{\text{er}}$ rang), guidant les choix tactiques de déplacement ;
+    \item \textbf{Le loup Beta ($\beta$) :} la deuxième meilleure solution ($2^{\text{e}}$ rang), agissant comme conseiller direct ;
+    \item \textbf{Le loup Delta ($\delta$) :} la troisième meilleure solution ($3^{\text{e}}$ rang), sentinelle complétant le périmètre de traque ;
+    \item \textbf{Les loups Omega ($\omega$) :} l'ensemble des autres candidats, contraints de converger vers le barycentre d'action défini par le trio $(\alpha, \beta, \delta)$.
+\end{enumerate}
+
+Le modèle mathématique canonique décompose le guidage en calculant trois vecteurs de positionnement intermédiaire :
+\begin{align}
+    \mathbf{D}_{\alpha} &= \left|\mathbf{C}_{1} \odot \mathbf{X}_{\alpha} - \mathbf{X}\right|, & \mathbf{X}_{1} &= \mathbf{X}_{\alpha} - \mathbf{A}_{1} \odot \mathbf{D}_{\alpha} \\
+    \mathbf{D}_{\beta}  &= \left|\mathbf{C}_{2} \odot \mathbf{X}_{\beta} - \mathbf{X}\right|,  & \mathbf{X}_{2} &= \mathbf{X}_{\beta} - \mathbf{A}_{2} \odot \mathbf{D}_{\beta} \\
+    \mathbf{D}_{\delta} &= \left|\mathbf{C}_{3} \odot \mathbf{X}_{\delta} - \mathbf{X}\right|, & \mathbf{X}_{3} &= \mathbf{X}_{\delta} - \mathbf{A}_{3} \odot \mathbf{D}_{\delta}
+\end{align}
+La nouvelle position du loup $\mathbf{X}$ à l'itération $t+1$ correspond à la moyenne arithmétique de ces trois composantes :
+\begin{equation}
+    \mathbf{X}(t+1) = \frac{\mathbf{X}_{1} + \mathbf{X}_{2} + \mathbf{X}_{3}}{3}
+    \label{eq:gwo_avg}
+\end{equation}
+Les vecteurs d'encerclement $\mathbf{A}$ et $\mathbf{C}$ sont régis par :
+\begin{equation}
+    \mathbf{A}_j = 2a \, \mathbf{r}_{1,j} - a, \qquad \mathbf{C}_j = 2\mathbf{r}_{2,j}, \qquad \forall j \in \{1, 2, 3\}
+\end{equation}
+où $\mathbf{r}_{1,j}, \mathbf{r}_{2,j} \sim \mathcal{U}(0, 1)^d$. Le paramètre scalaire $a$ décroît de manière purement linéaire en fonction du temps :
+\begin{equation}
+    a(t) = 2 - 2 \cdot \left(\frac{t}{T_{\max}}\right)
+    \label{eq:gwo_linear_a}
+\end{equation}
+
+\section{Limites Critiques des Métaheuristiques Canoniques}
+Malgré leur popularité, ces deux méthodes exhibent des vulnérabilités notables :
+\begin{itemize}[label=\textbullet]
+    \item \textbf{Perte de diversité et attraction monopolistique (PSO) :} Lorsque le meilleur global $\mathbf{gbest}$ stagne dans un minimum local, les termes d'attraction de l'équation \eqref{eq:pso_vel} font converger rapidement toutes les particules dans un voisinage réduit. Les vitesses s'annulent et l'essaim perd toute capacité de perturbation.
+    \item \textbf{Transition rigide et absence de rétroaction (GWO) :} Dans le GWO standard, la transition entre exploration ($|\mathbf{A}| > 1$) et exploitation ($|\mathbf{A}| < 1$) dépend uniquement du ratio $t / T_{\max}$. Cette programmation linéaire déterministe est aveugle : si l'optimum global exige une exploration prolongée au-delà de $T_{\max}/2$, la décroissance de $a$ force l'agglutination de la meute autour d'un trio potentiellement piégé.
+\end{itemize}
+
+\section{La Théorie des Jeux Évolutive (EGT)}
+
+\subsection{Distinction : Jeux Statiques (Lemke--Howson) vs Jeux Évolutifs}
+Il convient de clarifier la distinction conceptuelle entre la théorie des jeux classique non-coopérative et la théorie des jeux évolutive :
+\begin{itemize}[label=\textbullet]
+    \item \textbf{Théorie classique (Von Neumann, Nash) :} Les joueurs sont supposés dotés d'une rationalité absolue et d'une information parfaite sur les fonctions de gains. Pour un jeu bimatriciel $(A, B)$, le calcul d'un équilibre de Nash exact repose sur des méthodes combinatoires telles que l'algorithme de \textbf{Lemke--Howson (1964)} \cite{lemke1964equilibrium}, qui résout un Problème de Complémentarité Linéaire (LCP) par pivotage continu. Bien qu'exacte, cette approche devient prohibitivement lourde lorsqu'elle doit être répétée à chaque itération d'un essaim stochastique.
+    \item \textbf{Théorie Évolutive (Maynard Smith, Taylor \& Jonker) :} Les agents possèdent une rationalité limitée. Ils n'analysent pas toutes les stratégies possibles : ils adoptent un comportement, observent le gain réel obtenu, et la sélection naturelle fait proliférer les comportements les plus performants au détriment des moins efficaces \cite{weibull1995evolutionary}.
+\end{itemize}
+
+\subsection{Dynamique du Réplicateur de Taylor \& Jonker}
+Le modèle central de l'EGT est la dynamique du réplicateur introduite par Taylor et Jonker en 1978 \cite{taylor1978evolutionary}. Pour une population disposant de $K$ stratégies pures, notons $p_k(t)$ la proportion de la population jouant la stratégie $k$ à l'itération $t$, vérifiant :
+\begin{equation}
+    p_k(t) \ge 0, \qquad \sum_{k=1}^K p_k(t) = 1
+\end{equation}
+Soit $F_k(t)$ le gain empirique moyen (\textit{payoff}) rapporté par la stratégie $k$ à l'itération courante, et $\bar{F}(t)$ le gain moyen collectif de la population :
+\begin{equation}
+    \bar{F}(t) = \sum_{j=1}^K p_j(t) \cdot F_j(t)
+\end{equation}
+La forme discrète de l'équation du réplicateur s'écrit :
+\begin{equation}
+    p_k(t+1) = p_k(t) + \eta \cdot p_k(t) \cdot \left(F_k(t) - \bar{F}(t)\right)
+    \label{eq:replicator_discrete}
+\end{equation}
+où $\eta \in ]0, 1]$ représente le taux d'apprentissage de la population.
+
+\paragraph{Interprétation mathématique :}
+\begin{itemize}[label=\textbullet]
+    \item Si $F_k(t) > \bar{F}(t)$, la stratégie $k$ surpasse la performance collective moyenne ; par conséquent, $(F_k - \bar{F}) > 0$ et $p_k(t+1) > p_k(t)$ (croissance de la part stratégique).
+    \item Si $F_k(t) < \bar{F}(t)$, la stratégie sous-performe et sa proportion décroît.
+    \item Si $F_k(t) = \bar{F}(t)$, le système se trouve dans un état stationnaire.
+\end{itemize}
+
+\subsection{Mécanismes de Sécurité et Préservation de la Diversité}
+Dans un environnement stochastique, une stratégie purement exploratoire peut rapporter un gain temporairement nul lors de phases d'exploitation locale. Si $p_k(t)$ atteignait strictement 0, le terme multiplicatif $p_k(t)$ dans l'équation \eqref{eq:replicator_discrete} empêcherait définitivement toute réactivation future de la stratégie.
+
+Pour pallier ce risque d'\textbf{extinction irréversible}, deux sécurités sont intégrées :
+\begin{enumerate}[label=\textbf{\alph*.}]
+    \item \textbf{Seuil de mutation minimal ($\varepsilon > 0$) :}
+    \begin{equation}
+        \widetilde{p}_k(t+1) = \max\left(p_k(t+1),\, \varepsilon\right), \qquad p_k(t+1) = \frac{\widetilde{p}_k(t+1)}{\sum_{j=1}^K \widetilde{p}_j(t+1)}
+        \label{eq:eps_guard}
+    \end{equation}
+    Ce mécanisme garantit que chaque opérateur conserve en permanence une représentativité minimale non-nulle (par exemple $\varepsilon = 0.02$ dans SDPSO et $\varepsilon = 0.05$ dans GT-GWO).
+    \item \textbf{Redémarrages périodiques (\textit{Restarts}) :} Réinitialisation périodique du vecteur de probabilités à la distribution uniforme $\left[\frac{1}{K}, \dots, \frac{1}{K}\right]$ pour éviter l'hyperspécialisation précoce.
+\end{enumerate}
+
+\section{Revue Critique des Travaux Connexes}
+\begin{itemize}[label=\textbullet]
+    \item \textbf{SDPSO (Liu \& Nishi, 2022) \cite{liu2022strategy} :} Les auteurs ont intégré la dynamique du réplicateur pour commuter entre 4 opérateurs de déplacement (LIPS, UPSO, LDWPSO, CLPSO) dans PSO. Leurs résultats montrent une nette réduction de la saturation des particules autour de $\mathbf{gbest}$.
+    \item \textbf{Sélection naturelle dans GWO (Al-Betar et al., 2018) \cite{albetar2018natural} :} Cette étude introduit des opérateurs de tournoi et de roulette pour assouplir le remplacement strict des leaders, validant l'utilité des mécanismes darwiniens dans la gestion de la meute.
+    \item \textbf{PSO à sous-essaims coopératifs (Venter \& Sobieski, 2003) \cite{venter2003particle} :} Modélisation de jeux non-coopératifs entre sous-groupes de particules pour l'optimisation multidisciplinaire, pionnière mais plus exigeante en calcul que l'EGT.
+\end{itemize}

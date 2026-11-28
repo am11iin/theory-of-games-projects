@@ -1,0 +1,40 @@
+\chapter{Introduction Générale}
+\label{chap:intro}
+
+\section{Contexte et Motivation}
+Dans les domaines des sciences de l'ingénieur, de l'intelligence artificielle et de la recherche opérationnelle, une part prépondérante des problèmes d'optimisation réels présente des caractéristiques hautement non-linéaires, non-convexes, non-différentiables ou de grande dimension combinatoire. Face à ces fonctions objectifs complexes, les méthodes exactes classiques (telles que le simplexe, la programmation par séparation et évaluation, ou le gradient conjugué) se heurtent rapidement à l'explosion combinatoire ou à l'absence de dérivabilité analytique.
+
+Pour résoudre ces problèmes réputés difficiles (souvent NP-difficiles), la recherche s'est orientée depuis trois décennies vers les métaheuristiques stochastiques d'inspiration biologique. Parmi celles-ci, les algorithmes d'\textbf{Intelligence en Essaim} (\textit{Swarm Intelligence}), tels que l'Optimisation par Essaim Particulaire (\textit{Particle Swarm Optimization} - PSO) introduite par Kennedy et Eberhart en 1995 \cite{kennedy1995particle}, et l'Optimisation par Loups Gris (\textit{Grey Wolf Optimizer} - GWO) conçue par Mirjalili et al. en 2014 \cite{mirjalili2014grey}, ont démontré une efficacité remarquable. Ces approches exploitent l'émergence d'une intelligence collective issue de règles de comportement simples appliquées par un ensemble d'agents décentralisés.
+
+\section{Problématique : Le Compromis Exploration vs Exploitation}
+Le cœur du succès de toute métaheuristique réside dans sa capacité à maintenir un équilibre subtil et dynamique entre deux forces antagonistes :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{L'exploration (ou diversification) :} la capacité de l'algorithme à scruter de vastes régions inexplorées de l'espace de recherche afin de localiser les bassins d'attraction les plus prometteurs ;
+    \item \textbf{L'exploitation (ou intensification) :} la capacité à concentrer l'effort de recherche localement autour des meilleures solutions déjà découvertes pour raffiner leur précision.
+\end{enumerate}
+
+Cependant, les algorithmes canoniques souffrent d'une limitation structurelle fondamentale : leurs mécanismes de recherche sont dictés par des équations déterministes et statiques. 
+\begin{itemize}[label=\textbullet]
+    \item Dans le \textbf{PSO canonique}, chaque particule est systématiquement attirée vers le meilleur point découvert par l'ensemble du groupe ($\mathbf{gbest}$), provoquant un phénomène d'agrégation rapide et une perte drastique de la diversité génétique de la population.
+    \item Dans le \textbf{GWO canonique}, la transition exploration-exploitation repose exclusivement sur la décroissance linéaire d'un paramètre $a$ de $2$ à $0$. Ce schéma aveugle ignore totalement l'état de stagnation réel de la meute. Lorsque les leaders ($\alpha, \beta, \delta$) sont capturés par un optimum local d'un paysage accidenté (comme la fonction de Rastrigin), l'ensemble de la population converge irrémédiablement vers cette solution sous-optimale sans possibilité d'échappement.
+\end{itemize}
+
+\section{L'Apport de la Théorie des Jeux Évolutive}
+Pour surmonter ces écueils sans recourir à des réglages manuels ou heuristiques ad hoc, la \textbf{Théorie des Jeux Évolutive} (\textit{Evolutionary Game Theory} - EGT) \cite{weibull1995evolutionary} fournit un cadre mathématique rigoureux et élégant. Contrairement à la théorie des jeux classique nécessitant une rationalité parfaite et le calcul coûteux d'un équilibre de Nash à chaque pas temporel, l'EGT étudie des populations d'agents dotés d'une rationalité limitée en interaction répétée.
+
+Dans cette optique, l'essaim est modélisé comme une population de joueurs pouvant choisir parmi un portfolio de stratégies de déplacement complémentaires. Selon les performances empiriques observées (\textit{payoffs}), l'\textbf{équation du réplicateur de Taylor \& Jonker (1978)} \cite{taylor1978evolutionary} ajuste dynamiquement la représentativité de chaque stratégie : les comportements apportant une amélioration supérieure à la moyenne du groupe voient leur part croître, tandis que les stratégies inopérantes sont marginalisées.
+
+\section{Objectifs du Projet et Structure du Rapport}
+L'objectif central de ce projet d'études est de concevoir, implémenter, évaluer et analyser l'impact de l'intégration de la Théorie des Jeux Évolutive au sein de deux métaheuristiques majeures :
+\begin{enumerate}[label=\textbf{(\roman*)}]
+    \item L'algorithme \textbf{SDPSO} (\textit{Strategy Dynamics Particle Swarm Optimization}) \cite{liu2022strategy}, qui gère dynamiquement quatre opérateurs de vitesse (LIPS, UPSO, LDWPSO, CLPSO) sur des benchmarks continus ;
+    \item L'algorithme \textbf{GT-GWO} (\textit{Game-Theoretic Grey Wolf Optimizer}), développé pour piloter quatre stratégies de chasse exclusives (\texttt{TRIO\_COOP}, \texttt{ALPHA\_EXPLOIT}, \texttt{LEVY\_EXPLORE}, \texttt{SOCIAL\_PEER}), étendu en version binaire (\textbf{BGT-GWO}) sur le problème combinatoire NP-complet du Sac à Dos 0/1.
+\end{enumerate}
+
+Le présent document est structuré en quatre chapitres :
+\begin{itemize}[label=\textbullet]
+    \item Le \textbf{Chapitre 1} présente l'état de l'art, les formulations mathématiques de base de PSO et GWO, les fondements de la dynamique du réplicateur en EGT, et une revue critique de la littérature.
+    \item Le \textbf{Chapitre 2} détaille la conception et l'implémentation algorithmique de SDPSO, de GT-GWO continu et de son extension discrète BGT-GWO avec son opérateur de réparation glouton.
+    \item Le \textbf{Chapitre 3} expose le protocole expérimental rigoureux, analyse l'ensemble des résultats chiffrés (30 à 120 répétitions), et examine les visualisations graphiques de convergence et de dynamique des stratégies.
+    \item Le \textbf{Chapitre 4} propose une discussion critique sur les compromis d'exploration/exploitation, la complexité calculatoire et la portée scientifique des résultats, suivie de la conclusion générale et des perspectives.
+\end{itemize}

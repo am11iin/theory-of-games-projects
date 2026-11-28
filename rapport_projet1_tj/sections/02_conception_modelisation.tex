@@ -1,0 +1,114 @@
+\chapter{Conception et Modélisation des Algorithmes Hybrides}
+\label{chap:conception}
+
+Ce chapitre expose l'architecture détaillée des deux métaheuristiques hybrides développées dans ce projet : l'algorithme \textbf{SDPSO} et l'algorithme \textbf{GT-GWO}, ainsi que son extension discrète \textbf{BGT-GWO} pour les problèmes d'optimisation combinatoire.
+
+\section{Modélisation de SDPSO (Strategy Dynamics PSO)}
+
+\subsection{Architecture Biparti de la Population}
+L'algorithme SDPSO, inspiré de Liu \& Nishi \cite{liu2022strategy}, structure le swarm de $N$ particules en deux groupes fonctionnels complémentaires :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Sous-population de diversité fixe (30\% des particules) :} ces particules exécutent systématiquement la stratégie CLPSO. Elles assurent un apport continu de diversité génétique à l'échelle de chaque dimension et empêchent l'effondrement prématuré de la variance spatiale de l'essaim.
+    \item \textbf{Sous-population adaptative (70\% des particules) :} ces particules choisissent dynamiquement leur opérateur de vitesse à chaque cycle en tirant selon le vecteur de probabilités $\mathbf{p} = [p_{\text{LIPS}}, p_{\text{UPSO}}, p_{\text{LDWPSO}}, p_{\text{CLPSO}}]$.
+\end{enumerate}
+
+\subsection{Portfolio des Quatre Opérateurs de Vitesse}
+Le portfolio réunit quatre opérateurs aux propriétés d'exploration et d'exploitation contrastées :
+\begin{itemize}[label=\textbullet]
+    \item \textbf{1. LIPS (Local Information Sharing PSO) :} s'affranchit totalement du meilleur global $\mathbf{gbest}$. La vitesse est guidée par les $k$ plus proches voisins euclidiens dans l'espace des positions personnelles $\mathbf{pbest}$, évitant la polarisation vers un unique pôle d'attraction.
+    \item \textbf{2. UPSO (Unified PSO) :} combine la vitesse globale standard et une vitesse locale sur topologie en anneau via un coefficient d'unification $u \in [0, 1]$.
+    \item \textbf{3. LDWPSO (Linear Decreasing Weight PSO) :} formule standard de PSO avec décroissance linéaire de l'inertie $w$ et ajustement dynamique des accélérations $c_1$ et $c_2$.
+    \item \textbf{4. CLPSO (Comprehensive Learning PSO) :} chaque dimension d'une particule apprend potentiellement du $\mathbf{pbest}$ d'une particule différente, créant des solutions hybrides idéales pour les fonctions non-séparables.
+\end{itemize}
+
+\subsection{Calcul du Payoff et Dynamique du Réplicateur dans SDPSO}
+Toutes les $T_{\text{eval}} = 200$ évaluations de la fonction objectif, le gain empirique de chaque stratégie $k$ est calculé à partir de l'amélioration relative du meilleur personnel des particules l'ayant adoptée :
+\begin{equation}
+    f_k = \frac{1}{|S_k|} \sum_{i \in S_k} \max\left(0, \frac{\text{fitness}(\mathbf{pbest}_i^{\text{anc}}) - \text{fitness}(\mathbf{pbest}_i^{\text{nouv}})}{|\text{fitness}(\mathbf{pbest}_i^{\text{anc}})| + 10^{-10}}\right)
+\end{equation}
+Les probabilités sont alors mises à jour selon l'équation \eqref{eq:replicator_discrete} avec un taux $\eta = 0.1$, puis soumises au seuil de mutation minimal $\varepsilon = 0.02$. De surcroît, des redémarrages périodiques à $25\%$, $50\%$ et $75\%$ du budget total d'évaluations réinitialisent $\mathbf{p}$ à $[0.25, 0.25, 0.25, 0.25]$.
+
+% -----------------------------------------------------------------------------
+\section{Modélisation de GT-GWO (Game-Theoretic Grey Wolf Optimizer)}
+
+\subsection{La Meute comme Population de Joueurs}
+Dans GT-GWO, la meute de $N$ loups est modélisée comme une société d'agents autonomes. À chaque itération $t$, chaque loup tire une stratégie de chasse $k \in \{1, 2, 3, 4\}$ selon la distribution de probabilité courante $\mathbf{p}(t) = [p_1(t), p_2(t), p_3(t), p_4(t)]$.
+
+\subsection{Portfolio des Quatre Stratégies de Chasse}
+Afin de briser la symétrie déterministe du GWO classique, nous introduisons un portfolio de quatre comportements distincts :
+
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item \textbf{Stratégie 1 : \texttt{TRIO\_COOP} (Guidage Triangulaire Standard)} \\
+    Reprend l'opérateur canonique de GWO où le déplacement résulte de la moyenne arithmétique des trois dominants $(\alpha, \beta, \delta)$ selon les équations (1.3)-(1.6). Cette stratégie offre une exploitation collective équilibrée.
+    
+    \item \textbf{Stratégie 2 : \texttt{ALPHA\_EXPLOIT} (Attaque Ciblée sur le Leader)} \\
+    Le loup focalise l'intégralité de son effort cinétique sur l'Alpha sans tenir compte de Beta et Delta :
+    \begin{equation}
+        \mathbf{X}_i(t+1) = \mathbf{X}_\alpha - \mathbf{A}_1 \odot |\mathbf{C}_1 \odot \mathbf{X}_\alpha - \mathbf{X}_i(t)|
+    \end{equation}
+    Cette stratégie est un opérateur d'exploitation locale agressive, particulièrement décisif en fin de convergence pour affiner l'optimum global.
+
+    \item \textbf{Stratégie 3 : \texttt{LEVY\_EXPLORE} (Saut Stochastique de Vol de Lévy)} \\
+    Pour s'extraire des bassins d'attraction des minima locaux, le loup effectue un saut aléatoire à queue lourde régi par la distribution de Lévy :
+    \begin{equation}
+        \mathbf{X}_i(t+1) = \mathbf{X}_i(t) + \sigma_{\text{step}} \odot \text{Levy}(\lambda) \odot (\mathbf{X}_i(t) - \mathbf{X}_\alpha)
+    \end{equation}
+    Le vecteur $\text{Levy}(\lambda)$ est généré par l'\textbf{algorithme de Mantegna (1994)} \cite{mantegna1994fast} avec un exposant de stabilité $\beta_{\text{levy}} = 1.5$ :
+    \begin{equation}
+        s = \frac{u}{|v|^{1/\beta_{\text{levy}}}}, \quad u \sim \mathcal{N}(0, \sigma_u^2), \quad v \sim \mathcal{N}(0, 1), \quad \sigma_u = \left[\frac{\Gamma(1+\beta_{\text{levy}})\sin(\pi\beta_{\text{levy}}/2)}{\Gamma\left(\frac{1+\beta_{\text{levy}}}{2}\right)\beta_{\text{levy}} 2^{(\beta_{\text{levy}}-1)/2}}\right]^{1/\beta_{\text{levy}}}
+    \end{equation}
+    Cette alternance de petits pas et de grands sauts soudains confère à GT-GWO une résilience exceptionnelle face aux paysages fortement accidentés.
+
+    \item \textbf{Stratégie 4 : \texttt{SOCIAL\_PEER} (Apprentissage Horizontal entre Pairs)} \\
+    Le loup ajuste sa position en interagissant directement avec deux autres loups $r_1$ et $r_2$ tirés uniformément dans la meute, sans solliciter la hiérarchie :
+    \begin{equation}
+        \mathbf{X}_i(t+1) = \mathbf{X}_i(t) + \mathbf{r} \odot \left(\mathbf{X}_{r_1}(t) - \mathbf{X}_{r_2}(t)\right)
+    \end{equation}
+    Inspiré de l'évolution différentielle (DE), cet opérateur maintient la dispersion spatiale de la meute.
+\end{enumerate}
+
+\subsection{Évaluation du Payoff et Évolution du Réplicateur dans GT-GWO}
+À chaque itération $t$, pour tout loup $i$ ayant appliqué la stratégie $k$, son gain individuel $g_i$ est évalué par l'amélioration relative du fitness :
+\begin{equation}
+    g_i(t) = \max\left(0,\, \frac{f(\mathbf{X}_i(t)) - f(\mathbf{X}_i(t+1))}{|f(\mathbf{X}_i(t))| + 10^{-10}}\right)
+\end{equation}
+Le payoff moyen de la stratégie $k$ est donné par :
+\begin{equation}
+    F_k(t) = 
+    \begin{cases}
+        \frac{1}{N_k} \sum_{i \in \text{Joueurs}(k)} g_i(t) & \text{si } N_k > 0 \\
+        0 & \text{sinon}
+    \end{cases}
+\end{equation}
+où $N_k$ est le nombre de loups ayant joué la stratégie $k$. Les probabilités $\mathbf{p}(t)$ sont alors ajustées selon l'équation \eqref{eq:replicator_discrete} avec un taux $\eta = 0.2$ et un seuil de mutation $\varepsilon = 0.05$.
+
+% -----------------------------------------------------------------------------
+\section{Extension Discrète : BGT-GWO pour le Sac à Dos 0/1}
+
+\subsection{Formulation du Problème du Sac à Dos 0/1}
+Soit un ensemble de $N_{\text{items}}$ objets, chaque objet $j$ ayant une valeur $v_j > 0$ et un poids $w_j > 0$. Étant donné un sac de capacité maximale $W$, le problème consiste à déterminer le vecteur binaire $\mathbf{x} = [x_1, \dots, x_{N_{\text{items}}}] \in \{0, 1\}^{N_{\text{items}}}$ qui maximise le gain total sous contrainte de capacité :
+\begin{equation}
+    \max \sum_{j=1}^{N_{\text{items}}} v_j x_j \qquad \text{sous contrainte} \qquad \sum_{j=1}^{N_{\text{items}}} w_j x_j \le W
+\end{equation}
+
+\subsection{Binarisation par Fonction Sigmoïde}
+Les vecteurs de position continue de GT-GWO $\mathbf{X}_i \in \mathbb{R}^{N_{\text{items}}}$ sont projetés dans l'espace binaire $\{0, 1\}^{N_{\text{items}}}$ par la fonction de transfert en sigmoïde :
+\begin{equation}
+    S(X_{i,j}) = \frac{1}{1 + e^{-X_{i,j}}}, \qquad
+    x_{i,j} = 
+    \begin{cases}
+        1 & \text{si } \text{rand}() < S(X_{i,j}) \\
+        0 & \text{sinon}
+    \end{cases}
+\end{equation}
+
+\subsection{Opérateur de Réparation Glouton}
+Si une solution binaire $\mathbf{x}$ viole la contrainte de poids ($\sum w_j x_j > W$), elle est corrigée par un opérateur de réparation glouton fondé sur l'efficacité relative des objets :
+\begin{enumerate}[label=\textbf{\arabic*.}]
+    \item Calcul des ratios valeur/poids : $\rho_j = \frac{v_j}{w_j}$ pour tous les objets sélectionnés ($x_j = 1$) ;
+    \item Tri des objets sélectionnés par ordre croissant de ratio $\rho_j$ (les moins rentables en premier) ;
+    \item Élimination successive ($x_j \leftarrow 0$) jusqu'à ce que le poids cumulé satisfasse strictement $\le W$.
+\end{enumerate}
+
+\subsection{Solveur Exact de Référence par Programmation Dynamique}
+Afin de quantifier de manière absolue l'écart à l'optimalité globale des algorithmes BGWO et BGT-GWO, une implémentation exacte par \textbf{Programmation Dynamique (DP)} de complexité temporelle $\mathcal{O}(N_{\text{items}} \cdot W)$ a été développée en parallèle. Ce solveur fournit la borne supérieure irréductible servant d'étalon à l'analyse expérimentale.
